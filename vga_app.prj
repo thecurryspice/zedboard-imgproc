@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ASCII"?>
+<sdkproject:SdkProject xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sdkproject="http://www.xilinx.com/sdkproject" name="vga_app" location="C:/Users/arb26/Documents/vitis_workspace/vga_app" platform="C:/Users/arb26/Documents/vitis_workspace/vga_plat/export/vga_plat/vga_plat.xpfm" platformUID="xilinx:zed::0.0(custom)" systemProject="vga_app_system" sysConfig="vga_plat" runtime="C/C++" cpu="standalone_domain" cpuInstance="ps7_cortexa9_0" os="standalone" language="CPP" mssSignature="826f053b81154d380990f24d26800299">
+  <configuration name="Debug" id="xilinx.gnu.armv7.exe.debug.604976208" dirty="true">
+    <configBuildOptions xsi:type="sdkproject:SdkOptions"/>
+    <lastBuildOptions xsi:type="sdkproject:SdkOptions"/>
+  </configuration>
+  <configuration name="Release" id="xilinx.gnu.armv7.exe.release.42042570" dirty="true">
+    <configBuildOptions xsi:type="sdkproject:SdkOptions"/>
+  </configuration>
+  <template appTemplateName="empty_application"/>
+</sdkproject:SdkProject>
