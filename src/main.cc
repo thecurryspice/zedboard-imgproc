@@ -11,6 +11,12 @@
 #include "xscugic.h"
 #include <cstdlib>
 
+#include "colour_defs.h"
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
+#define HEIGHT (1024)
+#define WIDTH  (1280)
+#define BAR_WIDTH (200)
 
 volatile bool TIMER_INTR_FLG;
 XScuGic InterruptController; /* Instance of the Interrupt Controller */
@@ -77,9 +83,9 @@ int main()
 	//Reset Values
 	XTmrCtr_SetResetValue(&TimerInstancePtr,
 	0, //Change with generic value
-//	0xFFF0BDC0);
+	0xFFF0BDC0);
 	//0x23C34600);
-	0xDC3CB9FF);
+//	0xDC3CB9FF);
 	//Interrupt Mode and Auto reload
 	XTmrCtr_SetOptions(&TimerInstancePtr,
 	XPAR_AXI_TIMER_0_DEVICE_ID,
@@ -92,39 +98,50 @@ int main()
 	XScuGic_Enable(&InterruptController, 61);
 	XScuGic_SetPriorityTriggerType(&InterruptController, 61, 0xa0, 3);
 	int loop = 0;
-	int * image_buffer_pointer = (int *)0x00900000;
+	int * vga_buffer_pointer = (int *)0x00900000;
 	int * image1_pointer = (int *)0x018D2008;
 	int * image2_pointer = (int *)0x020BB00C;
 	int * image3_pointer = (int *)0x028A4010;
 	int * image4_pointer = (int *)0x0308D014;
 	int * image5_pointer = (int *)0x03876018;
 
-	while(1) {
+	int (&img_buffer)[HEIGHT][WIDTH] = *reinterpret_cast<int (*)[HEIGHT][WIDTH]>(image1_pointer);
+	for(int row = 0; row < HEIGHT; row++)
+	{
+		for(int col = 0; col < WIDTH; col++)
+			img_buffer[row][col] = 0x00000000;
+	}
+
+	int bar_idx = 0;
+	int prevCol = 0;
+	for(int row = 0; row < HEIGHT; row++)
+	{
+		bar_idx = 0;
+		prevCol = 0;
+		for(int col = 0; col < WIDTH; col++)
+		{
+			img_buffer[row][col] = palette[bar_idx];
+			if(col-prevCol > BAR_WIDTH)
+			{
+				bar_idx++;
+				prevCol = col;
+			}
+		}
+	}
+
+	Xil_DCacheFlush();
+
+	while(1)
+	{
 		XTmrCtr_Start(&TimerInstancePtr,0);
 		while(TIMER_INTR_FLG == false){
 		}
 
 		TIMER_INTR_FLG = false;
 
-		if(loop == 0){
-			memset(image_buffer_pointer, 16656, NUM_BYTES_BUFFER/4);
-			Xil_DCacheFlush();
-		}
-		else if(loop==1){
-			memset(image_buffer_pointer, 0xFF, NUM_BYTES_BUFFER);
-			Xil_DCacheFlush();
-		}
-//		else if(loop==2){
-//			memcpy(image_buffer_pointer, image3_pointer, NUM_BYTES_BUFFER);
-//		}
-//		else if(loop==3){
-//			memcpy(image_buffer_pointer, image4_pointer, NUM_BYTES_BUFFER);
-//		}
-//		else if(loop==4){
-//			memcpy(image_buffer_pointer, image5_pointer, NUM_BYTES_BUFFER);
-//		}
-		loop++;
-		loop = loop % 2;
+		memcpy(vga_buffer_pointer, image1_pointer, NUM_BYTES_BUFFER);
+//		if(loop == PALETTE_SIZE) loop = 0;
+
 	}
 	return 0;
 }
@@ -135,3 +152,4 @@ int main()
 //dow -data U:/ENSC894AdvDig/vga_tutorial_students/stage3.data 0x028A4010
 //dow -data U:/ENSC894AdvDig/vga_tutorial_students/stage4.data 0x0308D014
 //dow -data U:/ENSC894AdvDig/vga_tutorial_students/stage5.data 0x03876018
+//dow -data C:/Users/arb26/Pictures/red.data 0x018D2008
