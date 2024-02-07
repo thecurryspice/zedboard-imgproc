@@ -22,11 +22,13 @@ typedef enum {
 	YELLOW,
 	CYAN,
 	PINK,
-	WHITE,
-	GRAY,
 	ORANGE,
 	MAGENTA,
 	LIME,
+	WHITE,
+	GRAY,
+	BLACK,
+	OLIVE,
 	PALETTE_SIZE
 } colour;
 
@@ -38,11 +40,13 @@ int palette[PALETTE_SIZE] = {
 		0x0000F0F0,
 		0x00F0F000,
 		0x00F000F0,
-		0x00F0F0F0,
-		0x08008080,
 		0x000080F0,
 		0x00F00080,
-		0x0000F080
+		0x0000F080,
+		0x00F0F0F0,
+		0x00808080,
+		0x00000000,
+		0x00008080,
 };
 
 #endif

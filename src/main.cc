@@ -1,4 +1,3 @@
-
 //Empty C++ Application
 #include <stdio.h>
 #include "xil_types.h"
@@ -6,30 +5,62 @@
 #include "xparameters.h"
 
 #include "xil_io.h"
+#include "xil_printf.h"
 #include "xil_cache.h"
 #include "xil_exception.h"
+#include "xgpio.h"
 #include "xscugic.h"
 #include <cstdlib>
 
+#include "intr.h"
 #include "colour_defs.h"
+
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define HEIGHT (1024)
 #define WIDTH  (1280)
-#define BAR_WIDTH (200)
+#define NUM_BYTES_BUFFER (HEIGHT*WIDTH*4)
 
-volatile bool TIMER_INTR_FLG;
-XScuGic InterruptController; /* Instance of the Interrupt Controller */
-static XScuGic_Config *GicConfig;/* The configuration parameters of thecontroller */
-int NUM_BYTES_BUFFER = 5242880;
+int status = 0;
 
-void Timer_InterruptHandler(XTmrCtr *data, u8 TmrCtrNumber)
+void clear_frame(int (&img_buffer)[HEIGHT][WIDTH])
 {
-	XTmrCtr_Stop(data,TmrCtrNumber);
-	XTmrCtr_Reset(data,TmrCtrNumber);
-	//Update Stuff
-	TIMER_INTR_FLG = true;
+	for(int row = 0; row < HEIGHT; row++)
+	{
+		for(int col = 0; col < WIDTH; col++)
+			img_buffer[row][col] = palette[BLUE];
+	}
+
 }
+
+void build_frame(int (&img_buffer)[HEIGHT][WIDTH], int _colour_offset, int _bar_width)
+{
+	int bar_idx = 0;
+	int prevCol = 0;
+	for(int row = 0; row < HEIGHT; row++)
+	{
+		bar_idx = 0;
+		prevCol = 0;
+		int colour = (bar_idx+_colour_offset)%PALETTE_SIZE;
+		for(int col = 0; col < WIDTH; col++)
+		{
+			img_buffer[row][col] = palette[colour];
+			if(col-prevCol > _bar_width)
+			{
+				bar_idx++;
+				prevCol = col;
+				colour = (bar_idx+_colour_offset)%PALETTE_SIZE;
+			}
+		}
+	}
+}
+
+void update_frame(int* dst, int* src, size_t)
+{
+	memcpy(dst, src, NUM_BYTES_BUFFER);
+	Xil_DCacheFlush();
+}
+
 
 int SetUpInterruptSystem(XScuGic *XScuGicInstancePtr){
 	Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT,
@@ -68,88 +99,62 @@ int ScuGicInterrupt_Init(u16 DeviceId,XTmrCtr *TimerInstancePtr)
 	return XST_SUCCESS;
 }
 
-int main()
+
+void setup_sw_timer(XTmrCtr* TimerInstancePtr, int timer_reset_value)
 {
-	XTmrCtr TimerInstancePtr;
-	int xStatus;
 	//-----------Setup Timer Interrupt---------------------------------------
-
-	xStatus = XTmrCtr_Initialize(&TimerInstancePtr,XPAR_AXI_TIMER_0_DEVICE_ID);
-
-	XTmrCtr_SetHandler(&TimerInstancePtr,
-	(XTmrCtr_Handler)Timer_InterruptHandler,
-	&TimerInstancePtr);
+	status = XTmrCtr_Initialize(TimerInstancePtr,TMR_DEVICE_ID);
+	XTmrCtr_SetHandler(TimerInstancePtr,(XTmrCtr_Handler)Timer_InterruptHandler,TimerInstancePtr);
 
 	//Reset Values
-	XTmrCtr_SetResetValue(&TimerInstancePtr,
-	0, //Change with generic value
-	0xFFF0BDC0);
-	//0x23C34600);
-//	0xDC3CB9FF);
+	XTmrCtr_SetResetValue(TimerInstancePtr,0,timer_reset_value);
 	//Interrupt Mode and Auto reload
-	XTmrCtr_SetOptions(&TimerInstancePtr,
-	XPAR_AXI_TIMER_0_DEVICE_ID,
-	(XTC_INT_MODE_OPTION | XTC_AUTO_RELOAD_OPTION ));
+	XTmrCtr_SetOptions(TimerInstancePtr,TMR_DEVICE_ID, (XTC_INT_MODE_OPTION | XTC_AUTO_RELOAD_OPTION ));
+}
 
-	xStatus=ScuGicInterrupt_Init(XPAR_PS7_SCUGIC_0_DEVICE_ID,&TimerInstancePtr);
+void setup_gpio(XGpio* xled_p, XGpio* xbtn_p)
+{
+//	status = XGpio_Initialize(xled_p, LEDS_DEVICE_ID);
+//	if(status != XST_SUCCESS) return XST_FAILURE;
+	status = XGpio_Initialize(xbtn_p, BTNS_DEVICE_ID);
+//	if(status != XST_SUCCESS) return XST_FAILURE;
 
+//	XGpio_SetDataDirection(xled_p, 1, 0x00);
+	XGpio_SetDataDirection(xbtn_p, 1, 0xFF);
+}
 
-	/*Enable the interrupt for the device and then cause (simulate) an interrupt so the handlers will be called*/
-	XScuGic_Enable(&InterruptController, 61);
-	XScuGic_SetPriorityTriggerType(&InterruptController, 61, 0xa0, 3);
-	int loop = 0;
-	int * vga_buffer_pointer = (int *)0x00900000;
-	int * image1_pointer = (int *)0x018D2008;
-	int * image2_pointer = (int *)0x020BB00C;
-	int * image3_pointer = (int *)0x028A4010;
-	int * image4_pointer = (int *)0x0308D014;
-	int * image5_pointer = (int *)0x03876018;
+int main()
+{
+	setup_gpio(&xled_o, &xbtn_o);
+	setup_sw_timer(&xtimer_o, 0xDC3CB9FF);
 
-	int (&img_buffer)[HEIGHT][WIDTH] = *reinterpret_cast<int (*)[HEIGHT][WIDTH]>(image1_pointer);
-	for(int row = 0; row < HEIGHT; row++)
-	{
-		for(int col = 0; col < WIDTH; col++)
-			img_buffer[row][col] = 0x00000000;
-	}
+	// initialise the interrupt controller
+	status = IntcInitFunction(INTC_DEVICE_ID, &xtimer_o, &xbtn_o);
+	if(status != XST_SUCCESS) return XST_FAILURE;
 
-	int bar_idx = 0;
-	int prevCol = 0;
-	for(int row = 0; row < HEIGHT; row++)
-	{
-		bar_idx = 0;
-		prevCol = 0;
-		for(int col = 0; col < WIDTH; col++)
-		{
-			img_buffer[row][col] = palette[bar_idx];
-			if(col-prevCol > BAR_WIDTH)
-			{
-				bar_idx++;
-				prevCol = col;
-			}
-		}
-	}
+	// start timer
+	XTmrCtr_Start(&xtimer_o, 0);
 
-	Xil_DCacheFlush();
+	// get some pointers to play around with
+	int * vga_buffer_p = (int *)0x00900000;
+	int * img1D_p = (int *)0x018D2008;
+
+	// reinterpret to 2D pointer
+	int (&img_buffer)[HEIGHT][WIDTH] = *reinterpret_cast<int (*)[HEIGHT][WIDTH]>(img1D_p);
+
+	// blank out frame once
+	clear_frame(img_buffer);
+	update_frame(vga_buffer_p, img1D_p, NUM_BYTES_BUFFER);
 
 	while(1)
 	{
-		XTmrCtr_Start(&TimerInstancePtr,0);
-		while(TIMER_INTR_FLG == false){
+		if(trigger)
+		{
+			build_frame(img_buffer, colour_offset, bar_width);
+//			Xil_DCacheFlush();
+			trigger = false;
 		}
-
-		TIMER_INTR_FLG = false;
-
-		memcpy(vga_buffer_pointer, image1_pointer, NUM_BYTES_BUFFER);
-//		if(loop == PALETTE_SIZE) loop = 0;
-
+		update_frame(vga_buffer_p, img1D_p, NUM_BYTES_BUFFER);
 	}
 	return 0;
 }
-
-
-//dow -data U:/ENSC894AdvDig/vga_tutorial_students/stage1.data 0x018D2008
-//dow -data U:/ENSC894AdvDig/vga_tutorial_students/stage2.data 0x020BB00C
-//dow -data U:/ENSC894AdvDig/vga_tutorial_students/stage3.data 0x028A4010
-//dow -data U:/ENSC894AdvDig/vga_tutorial_students/stage4.data 0x0308D014
-//dow -data U:/ENSC894AdvDig/vga_tutorial_students/stage5.data 0x03876018
-//dow -data C:/Users/arb26/Pictures/red.data 0x018D2008
