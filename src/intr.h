@@ -7,6 +7,7 @@
 #include "xscugic.h"
 #include "xil_exception.h"
 #include "xil_printf.h"
+#include "defs.h"
 
 // Parameter definitions
 #define INTC_DEVICE_ID 			XPAR_PS7_SCUGIC_0_DEVICE_ID
@@ -17,10 +18,10 @@
 #define INTC_TMR_INTERRUPT_ID 	XPAR_FABRIC_AXI_TIMER_0_INTERRUPT_INTR
 
 #define BTN_INT 				XGPIO_IR_CH1_MASK
+#define BAR_WIDTH				(100)
 
-
-volatile bool TIMER_INTR_FLG, trigger=true;
-volatile int colour_offset = 0, bar_width = 200;
+volatile bool TIMER_INTR_FLG, trigger=true, horizontal = true;
+volatile int colour_offset = 0, bar_width = BAR_WIDTH;
 volatile uint32_t timer_counter = 0;
 XScuGic InterruptController; /* Instance of the Interrupt Controller */
 static XScuGic_Config *GicConfig;/* The configuration parameters of thecontroller */
@@ -62,15 +63,16 @@ void Button_InterruptHandler(void *InstancePtr)
 		if(btn_value == 16)	{ 			// increase bar width
 			bar_width += 2;
 		} else if (btn_value == 2) {	// decrease bar width
-			bar_width -= 2;
+			bar_width = MAX(bar_width-2, 2);
 		} else if (btn_value == 4) {	// rotate colours left
 			colour_offset++;
 		} else if (btn_value == 8) {	// rotate colours right
-			colour_offset--;
+			colour_offset = MAX(colour_offset-1, 0);
 		}
 	} else {
 		colour_offset = 0;
-		bar_width = 200;
+		bar_width = BAR_WIDTH;
+		horizontal = !horizontal;
 	}
 	trigger = true;
 //    XGpio_DiscreteWrite(&LEDInst, 1, led_data);

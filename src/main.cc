@@ -13,10 +13,8 @@
 #include <cstdlib>
 
 #include "intr.h"
-#include "colour_defs.h"
+#include "defs.h"
 
-#define MIN(a,b) (((a)<(b))?(a):(b))
-#define MAX(a,b) (((a)>(b))?(a):(b))
 #define HEIGHT (1024)
 #define WIDTH  (1280)
 #define NUM_BYTES_BUFFER (HEIGHT*WIDTH*4)
@@ -36,20 +34,47 @@ void clear_frame(int (&img_buffer)[HEIGHT][WIDTH])
 void build_frame(int (&img_buffer)[HEIGHT][WIDTH], int _colour_offset, int _bar_width)
 {
 	int bar_idx = 0;
-	int prevCol = 0;
-	for(int row = 0; row < HEIGHT; row++)
+	if(horizontal)
 	{
-		bar_idx = 0;
-		prevCol = 0;
+		int prevRow = 0, bar_idx = 0;;
+		// for each row, walk through the available palette based on the bar_idx
 		int colour = (bar_idx+_colour_offset)%PALETTE_SIZE;
-		for(int col = 0; col < WIDTH; col++)
+		for(int row = 0; row < HEIGHT; row++)
 		{
-			img_buffer[row][col] = palette[colour];
-			if(col-prevCol > _bar_width)
+			if(row-prevRow >= _bar_width)
 			{
+				// update bar_idx and colour when #columns for a bar are drawn
 				bar_idx++;
-				prevCol = col;
+				prevRow = row;
 				colour = (bar_idx+_colour_offset)%PALETTE_SIZE;
+			}
+			for(int col = 0; col < WIDTH; col++)
+			{
+				// assign colour to this pixel
+				img_buffer[row][col] = palette[colour];
+			}
+		}
+	}
+	else
+	{
+		int prevCol = 0;
+		for(int row = 0; row < HEIGHT; row++)
+		{
+			// for each row, walk through the available palette based on the bar_idx
+			bar_idx = 0;
+			prevCol = 0;
+			int colour = (bar_idx+_colour_offset)%PALETTE_SIZE;
+			for(int col = 0; col < WIDTH; col++)
+			{
+				// assign colour to this pixel
+				img_buffer[row][col] = palette[colour];
+				if(col-prevCol >= _bar_width)
+				{
+					// update bar_idx and colour when #columns for a bar are drawn
+					bar_idx++;
+					prevCol = col;
+					colour = (bar_idx+_colour_offset)%PALETTE_SIZE;
+				}
 			}
 		}
 	}

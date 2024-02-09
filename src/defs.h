@@ -49,4 +49,8 @@ int palette[PALETTE_SIZE] = {
 		0x00008080,
 };
 
+
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
+
 #endif
