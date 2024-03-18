@@ -12,80 +12,21 @@
 #include "xscugic.h"
 #include <cstdlib>
 
+#include "xil_types.h"
+#include "xstatus.h"
+#include "xllfifo.h"
+#include "xaxidma.h"
+#include "ff.h"
+
 #include "intr.h"
 #include "defs.h"
-
-#define HEIGHT (1024)
-#define WIDTH  (1280)
-#define NUM_BYTES_BUFFER (HEIGHT*WIDTH*4)
+#include "display.h"
+#include "textglyphs.h"
+#include "helpers.h"
+#include "gui.h"
+#include "sdif.h"
 
 int status = 0;
-
-void clear_frame(int (&img_buffer)[HEIGHT][WIDTH])
-{
-	for(int row = 0; row < HEIGHT; row++)
-	{
-		for(int col = 0; col < WIDTH; col++)
-			img_buffer[row][col] = palette[BLUE];
-	}
-
-}
-
-void build_frame(int (&img_buffer)[HEIGHT][WIDTH], int _colour_offset, int _bar_width)
-{
-	int bar_idx = 0;
-	if(horizontal)
-	{
-		int prevRow = 0, bar_idx = 0;;
-		// for each row, walk through the available palette based on the bar_idx
-		int colour = (bar_idx+_colour_offset)%PALETTE_SIZE;
-		for(int row = 0; row < HEIGHT; row++)
-		{
-			if(row-prevRow >= _bar_width)
-			{
-				// update bar_idx and colour when #columns for a bar are drawn
-				bar_idx++;
-				prevRow = row;
-				colour = (bar_idx+_colour_offset)%PALETTE_SIZE;
-			}
-			for(int col = 0; col < WIDTH; col++)
-			{
-				// assign colour to this pixel
-				img_buffer[row][col] = palette[colour];
-			}
-		}
-	}
-	else
-	{
-		int prevCol = 0;
-		for(int row = 0; row < HEIGHT; row++)
-		{
-			// for each row, walk through the available palette based on the bar_idx
-			bar_idx = 0;
-			prevCol = 0;
-			int colour = (bar_idx+_colour_offset)%PALETTE_SIZE;
-			for(int col = 0; col < WIDTH; col++)
-			{
-				// assign colour to this pixel
-				img_buffer[row][col] = palette[colour];
-				if(col-prevCol >= _bar_width)
-				{
-					// update bar_idx and colour when #columns for a bar are drawn
-					bar_idx++;
-					prevCol = col;
-					colour = (bar_idx+_colour_offset)%PALETTE_SIZE;
-				}
-			}
-		}
-	}
-}
-
-void update_frame(int* dst, int* src, size_t)
-{
-	memcpy(dst, src, NUM_BYTES_BUFFER);
-	Xil_DCacheFlush();
-}
-
 
 int SetUpInterruptSystem(XScuGic *XScuGicInstancePtr){
 	Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT,
@@ -152,6 +93,7 @@ int main()
 {
 	setup_gpio(&xled_o, &xbtn_o);
 	setup_sw_timer(&xtimer_o, 0xDC3CB9FF);
+	setup_uart();
 
 	// initialise the interrupt controller
 	status = IntcInitFunction(INTC_DEVICE_ID, &xtimer_o, &xbtn_o);
@@ -161,25 +103,27 @@ int main()
 	XTmrCtr_Start(&xtimer_o, 0);
 
 	// get some pointers to play around with
-	int * vga_buffer_p = (int *)0x00900000;
-	int * img1D_p = (int *)0x018D2008;
+	vga_buffer_p = (int *)0x00900000;
+	img1D_p = (int *)0x018D2008;
 
 	// reinterpret to 2D pointer
 	int (&img_buffer)[HEIGHT][WIDTH] = *reinterpret_cast<int (*)[HEIGHT][WIDTH]>(img1D_p);
 
 	// blank out frame once
 	clear_frame(img_buffer);
-	update_frame(vga_buffer_p, img1D_p, NUM_BYTES_BUFFER);
+	draw_main_page(img_buffer);
+	update_frame();
+	strcpy(files[0],"Loading Card");
+	bool sd_status = setup_sd_card();
+	blank_pane_file_selector(img_buffer);
+	draw_main_page(img_buffer);
+	update_frame();
 
 	while(1)
 	{
-		if(trigger)
-		{
-			build_frame(img_buffer, colour_offset, bar_width);
-//			Xil_DCacheFlush();
-			trigger = false;
-		}
-		update_frame(vga_buffer_p, img1D_p, NUM_BYTES_BUFFER);
+		gui_handler(img_buffer);
+//		build_frame(img_buffer, colour_offset, bar_width);
+		update_frame();
 	}
 	return 0;
 }
