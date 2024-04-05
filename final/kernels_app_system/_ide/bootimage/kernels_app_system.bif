@@ -1,0 +1,12 @@
+/* C:/Users/arb26/AppData/Local/Temp/bootgen_kernels_app_system9358252886136643057/sd_card_temp/boot.bif */
+/* Command to create bitstream .bin file:       */
+/*   bootgen -image <bif_file> -split bin -w    */
+/* Command to create BOOT.BIN file:             */
+/*   bootgen  -image <bif_file> -w -o i BOOT.BIN */
+/*kernels*/
+the_ROM_image:
+{
+ [bootloader] C:/Users/arb26/Documents/vitis_workspace/kernels/export/kernels/sw/kernels/boot/fsbl.elf
+ C:/Users/arb26/Documents/vitis_workspace/kernels_app/_ide/bitstream/design_4_wrapper.bit
+ C:/Users/arb26/Documents/vitis_workspace/kernels_app/Debug/kernels_app.elf
+}

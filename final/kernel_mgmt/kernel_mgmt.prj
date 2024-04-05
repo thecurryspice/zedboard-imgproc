@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ASCII"?>
+<sdkproject:SdkProject xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sdkproject="http://www.xilinx.com/sdkproject" name="kernel_mgmt" location="C:/Users/arb26/Documents/vitis_workspace/kernel_mgmt" platform="C:/Users/arb26/Documents/vitis_workspace/kernels/export/kernels/kernels.xpfm" platformUID="xilinx:zed::0.0(custom)" systemProject="kernels_app_system" sysConfig="kernels" runtime="C/C++" cpu="ps7_cortexa9_1" cpuInstance="ps7_cortexa9_1" os="standalone" language="CPP" mssSignature="a91ab7bdaa0681e7abfac3e14dd67c7e">
+  <configuration name="Debug" id="xilinx.gnu.armv7.exe.debug.1848634382">
+    <configBuildOptions xsi:type="sdkproject:SdkOptions"/>
+    <lastBuildOptions xsi:type="sdkproject:SdkOptions"/>
+  </configuration>
+  <configuration name="Release" id="xilinx.gnu.armv7.exe.release.838942655" dirty="true">
+    <configBuildOptions xsi:type="sdkproject:SdkOptions"/>
+  </configuration>
+  <template appTemplateName="empty_application"/>
+</sdkproject:SdkProject>

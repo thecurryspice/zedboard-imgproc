@@ -1,0 +1,9 @@
+TRACE::2024-03-25.17:22:31::SCWBifWriter::Found the complete platform C:/Users/arb26/Documents/vitis_workspace/kernels/export/kernels/kernels.xpfm
+TRACE::2024-03-25.17:22:31::SCWBifWriter::hardware databse : design_4_wrapper_11
+TRACE::2024-03-25.17:22:31::SCWBifWriter::bitstream found in the design
+TRACE::2024-03-25.17:22:31::SCWBifWriter::Found a baremetal domain, proc: ps7_cortexa9_0
+TRACE::2024-03-25.17:22:31::SCWBifWriter::proc type : 
+TRACE::2024-03-25.17:22:31::SCWBifWriter::proc[0] : ps7_cortexa9_0
+TRACE::2024-03-25.17:22:31::SCWBifWriter::Device type is : zynq
+TRACE::2024-03-25.17:22:31::SCWBifWriter::Writing BIF to file : C:/Users/arb26/Documents/vitis_workspace/kernels_app_system/_ide/bootimage/template_kernels_app_system.bif
+TRACE::2024-03-25.17:22:31::SCWBifWriter::Writing the Zynq Baremetal bif 
