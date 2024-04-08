@@ -68,15 +68,6 @@ void build_frame(int (&img_buffer)[HEIGHT][WIDTH], int _colour_offset, int _bar_
 void draw_line(int (&img_buffer)[HEIGHT][WIDTH], uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1, colour_e colour)
 {
 	int16_t steep = (y1 - y0) > (x1 - x0);
-//	  if (steep) {
-//	    _swap_int16_t(x0, y0);
-//	    _swap_int16_t(x1, y1);
-//	  }
-//
-//	  if (x0 > x1) {
-//	    _swap_int16_t(x0, x1);
-//	    _swap_int16_t(y0, y1);
-//	  }
 
 	int16_t dx, dy;
 	dx = x1 - x0;
@@ -288,7 +279,6 @@ void write_text_bg(int (&img_buffer)[HEIGHT][WIDTH], int offsetX, int offsetY, c
 
 void draw_image(int (&img_buffer)[HEIGHT][WIDTH], image_t* image_p, int offsetX, int offsetY)
 {
-//	xil_printf("%x %x\r\n", thisImage_p->pixel[IMG_HEIGHT-1][0], SWAP32(thisImage_p->pixel[IMG_HEIGHT-1][0]));
 	for(uint32_t row = 0; row < IMG_HEIGHT; row++)
 	{
 		for(uint32_t col = 0; col < IMG_WIDTH; col++)
@@ -297,23 +287,6 @@ void draw_image(int (&img_buffer)[HEIGHT][WIDTH], image_t* image_p, int offsetX,
 			img_buffer[offsetY+row][offsetX+col] = SWAP32(image_p->pixel[IMG_HEIGHT-1-row][col]);
 		}
 	}
-//	for(uint32_t row = 0; row < IMG_HEIGHT; row++)
-//	{
-//		for(uint32_t col = 0; col < IMG_WIDTH-IMG_STORE_OFFSET; col++)
-//		{
-//			// image is read inverted. So invert the row index
-//			img_buffer[offsetY+row][offsetX+col] = SWAP32(image_p->pixel[IMG_HEIGHT-1-row][col+IMG_STORE_OFFSET]);
-//		}
-//	}
-//	offsetX += IMG_WIDTH-IMG_STORE_OFFSET;
-//	for(uint32_t row = 0; row < IMG_HEIGHT; row++)
-//	{
-//		for(uint32_t col = 0; col < IMG_STORE_OFFSET-1; col++)
-//		{
-//			// image is read inverted. So invert the row index
-//			img_buffer[offsetY+row][offsetX+col] = SWAP32(image_p->pixel[IMG_HEIGHT-1-row][col]);
-//		}
-//	}
 }
 
 void update_frame()

@@ -54,13 +54,10 @@ void read_image_file(const char *filename) {
 
 int write_image_file(char* FileName, u32 size, u32 SourceAddress)
 {
-	UINT btw;
+	UINT btw;	// bytes to write
 	FRESULT rc; // FRESULT variable
 	static FIL fil;
 
-//	char file_name_SD[32] = "0:/";
-//	strcat(file_name_SD, FileName);
-//	xil_printf("Saving Image to: %s\r\n", file_name_SD);
 	xil_printf("Saving Image to: %s\r\n", FileName);
 	rc = f_open(&fil, (char *)FileName, FA_CREATE_ALWAYS | FA_WRITE); //f_open
 	if (rc) {

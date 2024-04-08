@@ -2,6 +2,7 @@
 #define __DEFS_H__
 
 #include "xparameters.h"
+#include "xil_io.h"
 
 #define MIN(a,b) 	(((a)<(b))?(a):(b))
 #define MAX(a,b) 	(((a)>(b))?(a):(b))
@@ -25,10 +26,11 @@
 #define IPC_ARM0_TRIGGER	(0xBADCAFFE)
 
 #define ARM1_BASE_ADDR		(0x17F40000)
+// draw addressing layout for shared memory
 #define IPC_IMG0_LOC		(ARM1_BASE_ADDR + 0x6F00000)
 #define IPC_IMG1_LOC		(IPC_IMG0_LOC + IMG_SIZE)
 #define IPC_KERNEL_VALUES	(IPC_IMG1_LOC + IMG_SIZE + 0x10)
-#define IPC_KERNEL_SELECT	(IPC_KERNEL_VALUES + 0x10)
+#define IPC_KERNEL_SELECT	(IPC_KERNEL_VALUES + 0x30)
 #define IPC_MSG_LOC			(IPC_KERNEL_SELECT + 0x10)
 
 

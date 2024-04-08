@@ -96,11 +96,11 @@ int main()
 	setup_sw_timer(&xtimer_o, 0xDC3CB9FF);
 	setup_uart();
 
-	xil_printf("IPC_IMG0_LOC:\t\t0x%x\r\n", IPC_IMG0_LOC);
-	xil_printf("IPC_IMG1_LOC:\t\t0x%x\r\n", IPC_IMG1_LOC);
-	xil_printf("KERNEL_VALUES:\t\t0x%x\r\n", IPC_KERNEL_VALUES);
-	xil_printf("KERNEL_SELECT:\t\t0x%x\r\n", IPC_KERNEL_SELECT);
-	xil_printf("IPC_MSG_LOC:\t\t0x%x\r\n", IPC_MSG_LOC);
+	xil_printf("IPC_IMG0_LOC:\t0x%x\r\n", IPC_IMG0_LOC);
+	xil_printf("IPC_IMG1_LOC:\t0x%x\r\n", IPC_IMG1_LOC);
+	xil_printf("KERNEL_VALUES:\t0x%x\r\n", IPC_KERNEL_VALUES);
+	xil_printf("KERNEL_SELECT:\t0x%x\r\n", IPC_KERNEL_SELECT);
+	xil_printf("IPC_MSG_LOC:\t0x%x\r\n", IPC_MSG_LOC);
 
 	// initialise the interrupt controller
 	status = IntcInitFunction(INTC_DEVICE_ID, &xtimer_o, &xbtn_o);
@@ -125,7 +125,7 @@ int main()
 	// wait for ARM1 init before loading card
 	while(Xil_In32(IPC_MSG_LOC) != IPC_ARM1_TRIGGER);
 
-	strcpy(files[0],"Loading Card");
+	strcpy(files[0],"Loading Card...");
 	bool sd_status = setup_sd_card();
 
 //	Xil_Out32(KERNELS_BASE_ADDR, 0x1);

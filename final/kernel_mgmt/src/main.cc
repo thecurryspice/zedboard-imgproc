@@ -64,7 +64,7 @@ void process_image_cpu()
 {
 	image_t* srcImage_p = (image_t *)(IPC_IMG0_LOC);
 	image_t* dstImage_p = (image_t *)(IPC_IMG1_LOC);
-	xil_printf("ARM1: Process Image\r\n");
+	xil_printf("ARM1: Processing Image\r\n");
 	kernel_3x3_t* kernel;
 	uint32_t kern_sel = Xil_In32(IPC_KERNEL_SELECT);
 	kernel = &kernels[kern_sel];
@@ -76,14 +76,14 @@ void process_image_cpu()
 		{
 			for(int j = 0; j < 3; j++)
 			{
-				kernel->kern_pix[i][j] = *((uint32_t *)IPC_KERNEL_VALUES + i*3 + j);
+				kernel->kern_pix[i][j] = Xil_In8(IPC_KERNEL_VALUES + i*3 + j);
 			}
 		}
 	}
 
-//	xil_printf("%d %d %d\r\n", kernel->kern_pix[0][0], kernel->kern_pix[0][1], kernel->kern_pix[0][2]);
-//	xil_printf("%d %d %d\r\n", kernel->kern_pix[1][0], kernel->kern_pix[1][1], kernel->kern_pix[1][2]);
-//	xil_printf("%d %d %d\r\n", kernel->kern_pix[2][0], kernel->kern_pix[2][1], kernel->kern_pix[2][2]);
+	xil_printf("%d %d %d\r\n", kernel->kern_pix[0][0], kernel->kern_pix[0][1], kernel->kern_pix[0][2]);
+	xil_printf("%d %d %d\r\n", kernel->kern_pix[1][0], kernel->kern_pix[1][1], kernel->kern_pix[1][2]);
+	xil_printf("%d %d %d\r\n", kernel->kern_pix[2][0], kernel->kern_pix[2][1], kernel->kern_pix[2][2]);
 
 	apply_filter(srcImage_p, dstImage_p, kernel);
 }
